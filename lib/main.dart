@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'camera_screen.dart';
 import 'grade_test.dart';
+import 'texture_camera_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,6 +58,16 @@ class HomeScreen extends StatelessWidget {
               },
               icon: const Icon(Icons.auto_fix_high),
               label: const Text('实时调色验证 (M1)'),
+              style: FilledButton.styleFrom(minimumSize: const Size(260, 52)),
+            ),
+            const SizedBox(height: 16),
+            FilledButton.tonalIcon(
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const TextureCameraScreen()));
+              },
+              icon: const Icon(Icons.texture),
+              label: const Text('纹理直通预览 (M2a)'),
               style: FilledButton.styleFrom(minimumSize: const Size(260, 52)),
             ),
           ],

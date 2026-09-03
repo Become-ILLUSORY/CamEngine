@@ -11,6 +11,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # ===== 依赖缓存（关键提速点）=====
+      - name: Cache Gradle distribution + dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.gradle/daemon
+          key: gradle-${{ hashFiles('android/app/build.gradle', 'android/settings.gradle') }}
+          restore-keys: |
+            gradle-
+
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
@@ -34,7 +46,6 @@ jobs:
         run: |
           wget -q https://services.gradle.org/distributions/gradle-8.7-bin.zip
           unzip -q gradle-8.7-bin.zip
-          # 在临时空目录执行 wrapper，只复制 jar+properties，避免 app 项目配置报错
           mkdir -p /tmp/gradle-wrap
           cd /tmp/gradle-wrap
           touch settings.gradle

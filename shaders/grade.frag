@@ -4,7 +4,7 @@
 // 输入: 一张图 + 实时滑杆参数
 // 输出: GPU 实时调色结果（所见即所得）
 uniform vec2 uSize;
-uniform shader uImage;
+uniform sampler2D uImage;
 uniform float uSaturation;   // 0.0..2.0, 1.0=中性
 uniform float uContrast;     // 0.0..2.0, 1.0=中性
 uniform float uExposure;     // 0.25..2.0, 1.0=原始
@@ -15,7 +15,7 @@ out vec4 fragColor;
 
 void main() {
     vec2 uv = FlutterFragCoord().xy / uSize.xy;
-    vec4 c = uImage.eval(uv);
+    vec4 c = texture(uImage, uv);
     vec3 col = c.rgb;
 
     // 亮度

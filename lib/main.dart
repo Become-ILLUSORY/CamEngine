@@ -1,12 +1,17 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:camera/camera.dart';
+import 'package:path_provider/path_provider.dart';
 
-void main() {
-  runApp(const CamEngineApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final cameras = await availableCameras();
+  runApp(CamEngineApp(cameras: cameras));
 }
 
 class CamEngineApp extends StatelessWidget {
-  const CamEngineApp({super.key});
+  final List<CameraDescription> cameras;
+  const CamEngineApp({super.key, required this.cameras});
 
   @override
   Widget build(BuildContext context) {
@@ -18,68 +23,144 @@ class CamEngineApp extends StatelessWidget {
         useMaterial3: true,
         brightness: Brightness.dark,
       ),
-      home: const HomeScreen(),
+      home: CameraScreen(cameras: cameras),
     );
   }
 }
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class CameraScreen extends StatefulWidget {
+  final List<CameraDescription> cameras;
+  const CameraScreen({super.key, required this.cameras});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<CameraScreen> createState() => _CameraScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  static const _channel = MethodChannel('com.illusory.camengine/engine');
-  String _engineVersion = '...';
-  String _status = '加载中...';
+class _CameraScreenState extends State<CameraScreen> {
+  CameraController? _controller;
+  int _cameraIndex = 0;
+  bool _ready = false;
+  String? _error;
+
+  CameraDescription get _current => widget.cameras[_cameraIndex];
 
   @override
   void initState() {
     super.initState();
-    _loadEngineInfo();
+    _initCamera();
   }
 
-  Future<void> _loadEngineInfo() async {
+  Future<void> _initCamera() async {
+    setState(() { _ready = false; _error = null; });
+    final c = CameraController(
+      _current,
+      ResolutionPreset.high,
+      enableAudio: false,
+      imageFormatGroup: ImageFormatGroup.jpeg,
+    );
+    _controller = c;
     try {
-      final version = await _channel.invokeMethod<String>('getEngineVersion');
-      setState(() {
-        _engineVersion = version ?? 'unknown';
-        _status = '引擎就绪';
-      });
-    } on MissingPluginException {
-      setState(() {
-        _status = '原生插件未加载';
-      });
+      await c.initialize();
+      if (!mounted) return;
+      setState(() { _ready = true; });
     } catch (e) {
-      setState(() {
-        _status = '错误: $e';
-      });
+      if (!mounted) return;
+      setState(() { _error = e.toString(); });
     }
+  }
+
+  Future<void> _takePicture() async {
+    final c = _controller;
+    if (c == null || !c.value.isInitialized) return;
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File('${dir.path}/cam_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await c.takePicture();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('已拍照：$file')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('拍照失败：$e')),
+      );
+    }
+  }
+
+  Future<void> _switchCamera() async {
+    if (widget.cameras.length < 2) return;
+    await _controller?.dispose();
+    setState(() {
+      _cameraIndex = (_cameraIndex + 1) % widget.cameras.length;
+    });
+    await _initCamera();
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final c = _controller;
     return Scaffold(
-      appBar: AppBar(title: const Text('CamEngine')),
-      body: Center(
+      backgroundColor: Colors.black,
+      body: SafeArea(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.camera_alt_outlined, size: 64, color: Colors.white54),
-            const SizedBox(height: 24),
-            Text('CamEngine', style: Theme.of(context).textTheme.headlineMedium),
-            const SizedBox(height: 8),
-            Text('引擎版本: $_engineVersion',
-                style: Theme.of(context).textTheme.bodyLarge),
-            const SizedBox(height: 16),
-            Text(_status, style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(height: 32),
-            FilledButton.icon(
-              onPressed: _loadEngineInfo,
-              icon: const Icon(Icons.refresh),
-              label: const Text('刷新'),
+            // 相机预览
+            Expanded(
+              child: Container(
+                color: Colors.black,
+                child: _error != null
+                    ? Center(child: Text('相机错误\n$_error', style: const TextStyle(color: Colors.redAccent)))
+                    : (c != null && c.value.isInitialized)
+                        ? ClipRect(child: CameraPreview(c))
+                        : const Center(child: CircularProgressIndicator()),
+              ),
+            ),
+            // 顶部信息条
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('相机数: ${widget.cameras.length} | 当前: $_cameraIndex',
+                      style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                  Text(_ready ? '已就绪' : '加载中',
+                      style: TextStyle(color: _ready ? Colors.greenAccent : Colors.white54, fontSize: 13)),
+                ],
+              ),
+            ),
+            // 底部工具栏
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.flip_camera_android, color: Colors.white, size: 32),
+                    onPressed: _switchCamera,
+                    tooltip: '切换镜头',
+                  ),
+                  const SizedBox(width: 32),
+                  GestureDetector(
+                    onTap: _takePicture,
+                    child: Container(
+                      width: 72, height: 72,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 4),
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.camera_alt, color: Colors.white, size: 30),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 80), // 平衡左侧图标
+                ],
+              ),
             ),
           ],
         ),

@@ -17,15 +17,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Download Gradle & generate official wrapper
-        run: |
-          wget -q https://services.gradle.org/distributions/gradle-8.7-bin.zip
-          unzip -q gradle-8.7-bin.zip
-          # 在 android/ 目录下运行 gradle wrapper，生成官方标准 wrapper jar
-          cd android
-          ../gradle-8.7/bin/gradle wrapper --gradle-version 8.7 --distribution-type bin
-          rm -rf ../gradle-8.7 ../gradle-8.7-bin.zip
-
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -35,6 +26,17 @@ jobs:
 
       - name: Verify Flutter
         run: flutter --version
+
+      - name: Download Gradle & generate official wrapper
+        run: |
+          wget -q https://services.gradle.org/distributions/gradle-8.7-bin.zip
+          unzip -q gradle-8.7-bin.zip
+          # 写入含真实 flutter.sdk 路径的 local.properties（settings.gradle 断言非空）
+          echo "sdk.dir=/usr/lib/android-sdk" > android/local.properties
+          echo "flutter.sdk=$FLUTTER_ROOT" >> android/local.properties
+          cd android
+          ../gradle-8.7/bin/gradle wrapper --gradle-version 8.7 --distribution-type bin
+          rm -rf ../gradle-8.7 ../gradle-8.7-bin.zip
 
       - name: Get dependencies
         run: flutter pub get

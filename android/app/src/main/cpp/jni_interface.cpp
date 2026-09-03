@@ -1,6 +1,7 @@
 #include <jni.h>
 #include <engine_api.h>
 #include <android/log.h>
+#include <cstdio>
 
 #define TAG "CamEngine-JNI"
 

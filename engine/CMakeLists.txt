@@ -16,6 +16,8 @@ target_include_directories(camengine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+target_link_libraries(camengine PUBLIC m)
+
 if(ANDROID)
     # Android 下禁用 RTTI/异常以减小体积（如需可调整）
     target_compile_options(camengine PRIVATE -fno-rtti -fno-exceptions)

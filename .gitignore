@@ -23,3 +23,7 @@ android/app/.cxx/
 *.o
 *.a
 *.so
+
+# Signing keystore (存于 GitHub Secret)
+*.keystore
+android/app/camengine-release.keystore

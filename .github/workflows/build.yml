@@ -58,6 +58,14 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Decode signing keystore
+        run: |
+          # 从 Secret 解码 keystore，供 release 签名
+          echo "$CAMENGINE_KEYSTORE_B64" | base64 -d > android/app/camengine-release.keystore
+          ls -la android/app/camengine-release.keystore
+        env:
+          CAMENGINE_KEYSTORE_B64: ${{ secrets.CAMENGINE_KEYSTORE_B64 }}
+
       - name: Build APK
         run: flutter build apk --release
 

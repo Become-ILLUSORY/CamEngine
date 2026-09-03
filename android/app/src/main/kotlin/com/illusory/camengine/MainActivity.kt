@@ -52,7 +52,12 @@ class MainActivity : FlutterActivity() {
                 result.success(textureEntry!!.id())
                 return
             }
-            val entry = flutterEngine.renderer.createSurfaceTexture()
+            val fe = flutterEngine
+            if (fe == null) {
+                result.error("ENG", "Flutter 引擎未就绪", null)
+                return
+            }
+            val entry = fe.renderer.createSurfaceTexture()
             textureEntry = entry
             val st = entry.surfaceTexture()
             st.setDefaultBufferSize(1280, 720)

@@ -10,13 +10,24 @@ set(ENGINE_SOURCES
     src/engine.cpp
 )
 
+if(ANDROID)
+    list(APPEND ENGINE_SOURCES
+        android/gl_renderer.cpp
+    )
+endif()
+
 add_library(camengine STATIC ${ENGINE_SOURCES})
 
 target_include_directories(camengine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/android
 )
 
-target_link_libraries(camengine PUBLIC m)
+if(ANDROID)
+    target_link_libraries(camengine PUBLIC EGL GLESv2 android log m)
+else()
+    target_link_libraries(camengine PUBLIC m)
+endif()
 
 if(ANDROID)
     # Android 下禁用 RTTI/异常以减小体积（如需可调整）

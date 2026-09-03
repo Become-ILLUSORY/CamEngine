@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'camera_screen.dart';
 import 'grade_test.dart';
 import 'texture_camera_screen.dart';
+import 'gl_camera_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -69,6 +70,19 @@ class HomeScreen extends StatelessWidget {
               icon: const Icon(Icons.texture),
               label: const Text('纹理直通预览 (M2a)'),
               style: FilledButton.styleFrom(minimumSize: const Size(260, 52)),
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const GlCameraScreen()));
+              },
+              icon: const Icon(Icons.camera_enhance),
+              label: const Text('实时滤镜相机 (M2b)'),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(260, 52),
+                backgroundColor: Colors.teal,
+              ),
             ),
           ],
         ),

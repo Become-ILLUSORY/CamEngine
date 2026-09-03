@@ -11,6 +11,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../../../engine
 # JNI 桥接代码
 add_library(camengine_jni SHARED
     jni_interface.cpp
+    jni_gl.cpp
 )
 
 target_include_directories(camengine_jni PRIVATE

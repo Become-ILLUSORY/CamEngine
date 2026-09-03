@@ -28,6 +28,8 @@ class MainActivity : FlutterActivity() {
 
     private external fun nativeGetEngineVersion(): String
 
+    private var glController: CameraGlController? = null
+
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
@@ -36,6 +38,32 @@ class MainActivity : FlutterActivity() {
                     "getEngineVersion" -> result.success(nativeGetEngineVersion())
                     "startCameraTexture" -> startCameraTexture(result)
                     "stopCameraTexture" -> stopCameraTexture(result)
+                    "startGlCamera" -> {
+                        try {
+                            val ctrl = glController ?: CameraGlController(this, flutterEngine.renderer)
+                            glController = ctrl
+                            val id = ctrl.start()
+                            result.success(id)
+                        } catch (e: Exception) {
+                            result.error("GL", "启动失败: ${e.message}", null)
+                        }
+                    }
+                    "stopGlCamera" -> {
+                        glController?.stop()
+                        glController = null
+                        result.success(null)
+                    }
+                    "setGradeParams" -> {
+                        val a = call.arguments as? List<*>
+                        if (a != null && a.size >= 5) {
+                            glController?.setParams(
+                                (a[0] as Number).toFloat(), (a[1] as Number).toFloat(),
+                                (a[2] as Number).toFloat(), (a[3] as Number).toFloat(),
+                                (a[4] as Number).toFloat()
+                            )
+                        }
+                        result.success(null)
+                    }
                     else -> result.notImplemented()
                 }
             }
@@ -105,6 +133,8 @@ class MainActivity : FlutterActivity() {
 
     override fun onDestroy() {
         try {
+            glController?.stop()
+            glController = null
             cameraProvider?.unbindAll()
             cameraSurface?.release()
             textureEntry?.release()

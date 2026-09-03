@@ -15,6 +15,8 @@ class MainActivity : FlutterActivity() {
         System.loadLibrary("camengine_jni")
     }
 
+    private external fun nativeGetEngineVersion(): String
+
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
@@ -29,5 +31,3 @@ class MainActivity : FlutterActivity() {
             }
     }
 }
-
-private external fun nativeGetEngineVersion(): String

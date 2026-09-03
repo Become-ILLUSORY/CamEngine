@@ -8,7 +8,7 @@
 extern "C" {
 
 JNIEXPORT jstring JNICALL
-Java_com_illusory_camengine_MainActivity_nativeGetEngineVersion(JNIEnv* env, jclass) {
+Java_com_illusory_camengine_MainActivity_nativeGetEngineVersion(JNIEnv* env, jobject /*thiz*/) {
     EngineVersion v = engine_get_version();
     char buf[64];
     snprintf(buf, sizeof(buf), "%d.%d.%d-%s", v.major, v.minor, v.patch, v.build);

@@ -17,16 +17,14 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Gradle 8.7
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "8.7"
-
-      - name: Regenerate Gradle Wrapper (official)
+      - name: Download Gradle & generate official wrapper
         run: |
+          wget -q https://services.gradle.org/distributions/gradle-8.7-bin.zip
+          unzip -q gradle-8.7-bin.zip
+          # 在 android/ 目录下运行 gradle wrapper，生成官方标准 wrapper jar
           cd android
-          # 用官方 gradle 重新生成标准 wrapper，覆盖本地可能不完整的 jar
-          gradle wrapper --gradle-version 8.7 --distribution-type bin
+          ../gradle-8.7/bin/gradle wrapper --gradle-version 8.7 --distribution-type bin
+          rm -rf ../gradle-8.7 ../gradle-8.7-bin.zip
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2

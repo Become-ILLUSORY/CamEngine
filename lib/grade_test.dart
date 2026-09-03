@@ -17,11 +17,11 @@ class _GradeTestScreenState extends State<GradeTestScreen> {
   bool _loading = true;
   String? _error;
 
-  double _saturation = 1.0;
-  double _contrast = 1.0;
-  double _exposure = 1.0;
-  double _temperature = 0.0;
-  double _strength = 1.0;
+  double _saturation = 1.4;
+  double _contrast = 1.15;
+  double _exposure = 1.1;
+  double _temperature = 0.15;
+  double _strength = 0.8;
 
   @override
   void initState() {
@@ -171,8 +171,8 @@ class _GradeTestScreenState extends State<GradeTestScreen> {
             children: [
               TextButton.icon(
                 onPressed: () => setState(() {
-                  _saturation = 1; _contrast = 1; _exposure = 1;
-                  _temperature = 0; _strength = 1;
+                  _saturation = 1.4; _contrast = 1.15; _exposure = 1.1;
+                  _temperature = 0.15; _strength = 0.8;
                 }),
                 icon: const Icon(Icons.refresh),
                 label: const Text('重置'),

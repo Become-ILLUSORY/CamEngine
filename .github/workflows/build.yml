@@ -31,12 +31,15 @@ jobs:
         run: |
           wget -q https://services.gradle.org/distributions/gradle-8.7-bin.zip
           unzip -q gradle-8.7-bin.zip
-          # 写入含真实 flutter.sdk 路径的 local.properties（settings.gradle 断言非空）
-          echo "sdk.dir=/usr/lib/android-sdk" > android/local.properties
-          echo "flutter.sdk=$FLUTTER_ROOT" >> android/local.properties
-          cd android
-          ../gradle-8.7/bin/gradle wrapper --gradle-version 8.7 --distribution-type bin
-          rm -rf ../gradle-8.7 ../gradle-8.7-bin.zip
+          # 在临时空目录执行 wrapper，只复制 jar+properties，避免 app 项目配置报错
+          mkdir -p /tmp/gradle-wrap
+          cd /tmp/gradle-wrap
+          touch settings.gradle
+          $OLDPWD/gradle-8.7/bin/gradle wrapper --gradle-version 8.7 --distribution-type bin
+          cp gradle/wrapper/gradle-wrapper.jar $OLDPWD/android/gradle/wrapper/
+          cp gradle/wrapper/gradle-wrapper.properties $OLDPWD/android/gradle/wrapper/
+          cd $OLDPWD
+          rm -rf gradle-8.7 gradle-8.7-bin.zip /tmp/gradle-wrap
 
       - name: Get dependencies
         run: flutter pub get

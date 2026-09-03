@@ -1,28 +1,11 @@
 #!/bin/sh
 
+# Gradle wrapper for CamEngine (Flutter android project)
+# APP_HOME = directory containing this script (= android/)
 APP_NAME="CamEngine"
 APP_BASE_NAME=`basename "$0"`
 
-if [ -n "$JAVA_HOME" ] ; then
-    if [ -x "$JAVA_HOME/bin/java" ] ; then
-        JAVACMD="$JAVA_HOME/bin/java"
-    else
-        die "ERROR: JAVA_HOME is set to an invalid directory: $JAVA_HOME"
-    fi
-else
-    JAVACMD="java"
-fi
-
-die () {
-    echo
-    echo "$*"
-    echo
-    exit 1
-} >&2
-
-which "$JAVACMD" >/dev/null 2>&1 || die "ERROR: java not found in PATH, set JAVA_HOME"
-
-# Resolve location of this script (allow symlinks)
+# Resolve location of this script
 PRG="$0"
 while [ -h "$PRG" ] ; do
     ls=`ls -ld "$PRG"`
@@ -33,12 +16,22 @@ while [ -h "$PRG" ] ; do
         PRG=`dirname "$PRG"`/"$link"
     fi
 done
-SAVED="`pwd`"
-cd "`dirname \"$PRG\"`/.." >/dev/null
+cd "`dirname \"$PRG\"`" >/dev/null
 APP_HOME="`pwd -P`"
-cd "$SAVED" >/dev/null
+cd "$OLDPWD" >/dev/null
 
 CLASSPATH="$APP_HOME/gradle/wrapper/gradle-wrapper.jar"
+
+if [ -n "$JAVA_HOME" ] ; then
+    JAVACMD="$JAVA_HOME/bin/java"
+else
+    JAVACMD="java"
+fi
+
+which "$JAVACMD" >/dev/null 2>&1 || {
+    echo "ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH."
+    exit 1
+} >&2
 
 exec "$JAVACMD" \
     $JAVA_OPTS \
